@@ -16,6 +16,7 @@ public class PlayerMovement : MonoBehaviour
 
     [Header("Keybinds")]
     public KeyCode jumpKey = KeyCode.Space;
+    public KeyCode teleportKey = KeyCode.Mouse1;
 
     [Header("Ground Check")]
     public float playerHeight;
@@ -27,8 +28,14 @@ public class PlayerMovement : MonoBehaviour
     private RaycastHit slopeHit;
     private bool exitingSlope;
 
+    [Header("Teleport")]
+    public float teleportDistance;
+    public int maxAirTeleports;
+    private int teleportsLeft;
+
     [Header("Other")]
     public Transform orientation;
+    public Transform playerCam;
 
     float horizontalInput;
     float verticalInput;
@@ -37,12 +44,15 @@ public class PlayerMovement : MonoBehaviour
 
     Rigidbody rb;
 
+    private bool teleportStorage = false;
+
 
     // Start is called before the first frame update
     void Start()
     {
         rb = GetComponent<Rigidbody>();
         rb.freezeRotation = true;
+        teleportsLeft = maxAirTeleports;
     }
 
     private void GetInput()
@@ -58,6 +68,10 @@ public class PlayerMovement : MonoBehaviour
 
             Invoke(nameof(ResetJump), jumpCooldown);
         }
+
+        if(Input.GetKeyDown(teleportKey) && teleportsLeft > 0){
+            teleportStorage = true;
+        }
     }
 
     // Update is called once per frame
@@ -65,14 +79,17 @@ public class PlayerMovement : MonoBehaviour
     {
         grounded = Physics.Raycast(transform.position, Vector3.down, playerHeight * 0.5f + 0.2f, whatIsGround);
 
-        GetInput();
+        
         LimitSpeed();
 
         if(grounded){
             rb.drag = groundDrag;
+            teleportsLeft = maxAirTeleports;
         }else{
             rb.drag = 0;
         }
+
+        GetInput();
 
         // Debug.Log(string.Format(
         //     "speed: {0}, grounded: {1}, on slope: {2}",
@@ -104,6 +121,11 @@ public class PlayerMovement : MonoBehaviour
         }
 
         rb.useGravity = !OnSlope();
+
+        if (teleportStorage) {
+            Teleport();
+            teleportStorage = false;
+        }
     }
 
     private void LimitSpeed()
@@ -152,5 +174,12 @@ public class PlayerMovement : MonoBehaviour
     private Vector3 GetSlopeMoveDirection()
     {
         return Vector3.ProjectOnPlane(moveDirection, slopeHit.normal).normalized;
+    }
+
+    private void Teleport(){
+        Vector3 displacement = playerCam.forward * teleportDistance;
+        transform.position = transform.position + displacement;
+        rb.velocity = new Vector3(rb.velocity.x, 0f, rb.velocity.z);
+        teleportsLeft--;
     }
 }
