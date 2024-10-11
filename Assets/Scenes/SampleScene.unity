@@ -1254,6 +1254,7 @@ MonoBehaviour:
   whatIsGround:
     serializedVersion: 2
     m_Bits: 1024
+  maxSlopeAngle: 50
   orientation: {fileID: 1642493025}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
