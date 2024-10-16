@@ -12,6 +12,7 @@ public class PlayerMovement : MonoBehaviour
     public float jumpForce = 10;
     public float jumpCooldown;
     public float airMultiplier;
+    public float gravityScale = 1;
     bool readyToJump = true;
 
     [Header("Keybinds")]
@@ -31,6 +32,7 @@ public class PlayerMovement : MonoBehaviour
     [Header("Teleport")]
     public float teleportDistance;
     public int maxAirTeleports;
+    public float speedBurst = 50;
     private int teleportsLeft;
 
     [Header("Other")]
@@ -102,6 +104,7 @@ public class PlayerMovement : MonoBehaviour
     private void FixedUpdate()
     {
         MovePlayer();
+        rb.AddForce((Vector3.up * 9.81f) + (Vector3.down * 9.81f * gravityScale), ForceMode.Force);
     }
 
     private void MovePlayer()
@@ -130,6 +133,12 @@ public class PlayerMovement : MonoBehaviour
 
     private void LimitSpeed()
     {
+        // don't limit air speed
+        if(grounded){
+            return;
+        }
+
+        // limit speed on slope
         if(OnSlope() && !exitingSlope)
         {
             if(rb.velocity.magnitude > moveSpeed){
@@ -139,6 +148,7 @@ public class PlayerMovement : MonoBehaviour
 
         Vector3 flatVel = new Vector3(rb.velocity.x, 0f, rb.velocity.z);
         
+        // general limitation on ground
         if(flatVel.magnitude > moveSpeed)
         {
             Vector3 limitedVel = flatVel.normalized * moveSpeed;
@@ -179,7 +189,12 @@ public class PlayerMovement : MonoBehaviour
     private void Teleport(){
         Vector3 displacement = playerCam.forward * teleportDistance;
         transform.position = transform.position + displacement;
-        rb.velocity = new Vector3(rb.velocity.x, 0f, rb.velocity.z);
+
+        // cancel y-velocity
+        rb.velocity = new Vector3(rb.velocity.x*0.25f, 0f, rb.velocity.z*0.25f);
+        Vector3 burstForce = playerCam.forward * speedBurst;
+        rb.AddForce(new Vector3(burstForce.x, burstForce.y*0.25f, burstForce.z), ForceMode.Impulse);
+
         teleportsLeft--;
     }
 }
