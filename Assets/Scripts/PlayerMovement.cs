@@ -30,9 +30,11 @@ public class PlayerMovement : MonoBehaviour
     private bool exitingSlope;
 
     [Header("Teleport")]
-    public float teleportDistance;
     public int maxAirTeleports;
+    public float teleportDistance;
     public float speedBurst = 50;
+    public float verticalBurstScale = 0.25f;
+    public GameObject noTeleportsEffect;
     private int teleportsLeft;
 
     [Header("Other")]
@@ -93,12 +95,11 @@ public class PlayerMovement : MonoBehaviour
 
         GetInput();
 
-        // Debug.Log(string.Format(
-        //     "speed: {0}, grounded: {1}, on slope: {2}",
-        //     rb.velocity.magnitude,
-        //     grounded,
-        //     OnSlope()
-        // ));
+        if(teleportsLeft > 0){
+            noTeleportsEffect.SetActive(false);
+        }else{
+            noTeleportsEffect.SetActive(true);
+        }
     }
 
     private void FixedUpdate()
@@ -193,7 +194,7 @@ public class PlayerMovement : MonoBehaviour
         // cancel y-velocity
         rb.velocity = new Vector3(rb.velocity.x*0.25f, 0f, rb.velocity.z*0.25f);
         Vector3 burstForce = playerCam.forward * speedBurst;
-        rb.AddForce(new Vector3(burstForce.x, burstForce.y*0.25f, burstForce.z), ForceMode.Impulse);
+        rb.AddForce(new Vector3(burstForce.x, burstForce.y*verticalBurstScale, burstForce.z), ForceMode.Impulse);
 
         teleportsLeft--;
     }
