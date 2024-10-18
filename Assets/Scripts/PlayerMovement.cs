@@ -1,7 +1,9 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class PlayerMovement : MonoBehaviour
 {
@@ -40,6 +42,7 @@ public class PlayerMovement : MonoBehaviour
     [Header("Other")]
     public Transform orientation;
     public Transform playerCam;
+    public TMP_Text speedometer;
 
     float horizontalInput;
     float verticalInput;
@@ -83,8 +86,8 @@ public class PlayerMovement : MonoBehaviour
     {
         grounded = Physics.Raycast(transform.position, Vector3.down, playerHeight * 0.5f + 0.2f, whatIsGround);
 
+        updateSpeedometer();
         
-        LimitSpeed();
 
         if(grounded){
             rb.drag = groundDrag;
@@ -105,6 +108,8 @@ public class PlayerMovement : MonoBehaviour
     private void FixedUpdate()
     {
         MovePlayer();
+        LimitSpeed();
+        
         rb.AddForce((Vector3.up * 9.81f) + (Vector3.down * 9.81f * gravityScale), ForceMode.Force);
     }
 
@@ -113,7 +118,6 @@ public class PlayerMovement : MonoBehaviour
         moveDirection = orientation.forward * verticalInput + orientation.right * horizontalInput;
 
         if(OnSlope() && !exitingSlope){
-            // Debug.DrawRay(transform.position, GetSlopeMoveDirection(), Color.green, 5f);
             rb.AddForce(GetSlopeMoveDirection() * moveSpeed * 20f, ForceMode.Force);
             if(rb.velocity.y > 0){
                 rb.AddForce(Vector3.down * 80f, ForceMode.Force);
@@ -134,8 +138,11 @@ public class PlayerMovement : MonoBehaviour
 
     private void LimitSpeed()
     {
-        // don't limit air speed
-        if(grounded){
+        Vector3 flatVel = new Vector3(rb.velocity.x, 0f, rb.velocity.z);
+
+        // limit air speed
+        if(!grounded && flatVel.magnitude > moveSpeed){
+            rb.AddForce(-flatVel*3f, ForceMode.Force);
             return;
         }
 
@@ -146,8 +153,6 @@ public class PlayerMovement : MonoBehaviour
                 rb.velocity = rb.velocity.normalized * moveSpeed;
             }
         }
-
-        Vector3 flatVel = new Vector3(rb.velocity.x, 0f, rb.velocity.z);
         
         // general limitation on ground
         if(flatVel.magnitude > moveSpeed)
@@ -188,8 +193,19 @@ public class PlayerMovement : MonoBehaviour
     }
 
     private void Teleport(){
-        Vector3 displacement = playerCam.forward * teleportDistance;
-        transform.position = transform.position + displacement;
+        // Vector3 displacement = playerCam.forward * teleportDistance;
+        // transform.position = transform.position + displacement;
+
+        RaycastHit hit;
+        Vector3 displacement;
+        if(Physics.Raycast(transform.position, playerCam.forward, out hit, teleportDistance)){
+            displacement = playerCam.forward * hit.distance;
+        }else{
+            displacement = playerCam.forward * teleportDistance;
+        }
+        transform.position += displacement;
+        transform.position += hit.normal;
+        
 
         // cancel y-velocity
         rb.velocity = new Vector3(rb.velocity.x*0.25f, 0f, rb.velocity.z*0.25f);
@@ -197,5 +213,10 @@ public class PlayerMovement : MonoBehaviour
         rb.AddForce(new Vector3(burstForce.x, burstForce.y*verticalBurstScale, burstForce.z), ForceMode.Impulse);
 
         teleportsLeft--;
+    }
+
+    private void updateSpeedometer()
+    {
+        speedometer.text = string.Format("Speed: {0}", Math.Round(rb.velocity.magnitude, 1));
     }
 }
