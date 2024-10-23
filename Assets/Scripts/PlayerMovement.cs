@@ -219,4 +219,9 @@ public class PlayerMovement : MonoBehaviour
     {
         speedometer.text = string.Format("Speed: {0}", Math.Round(rb.velocity.magnitude, 1));
     }
+
+    public void increaseMaxTeleports(int num)
+    {
+        maxAirTeleports += num;
+    }
 }
