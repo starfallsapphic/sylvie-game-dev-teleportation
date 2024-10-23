@@ -34,6 +34,7 @@ public class PlayerMovement : MonoBehaviour
     [Header("Teleport")]
     public int maxAirTeleports;
     public float teleportDistance;
+    public float verticalDistanceScale = 0.5f;
     public float speedBurst = 50;
     public float verticalBurstScale = 0.25f;
     public GameObject noTeleportsEffect;
@@ -198,12 +199,12 @@ public class PlayerMovement : MonoBehaviour
 
         RaycastHit hit;
         Vector3 displacement;
-        if(Physics.Raycast(transform.position, playerCam.forward, out hit, teleportDistance)){
+        if(Physics.Raycast(playerCam.position, playerCam.forward, out hit, teleportDistance)){
             displacement = playerCam.forward * hit.distance;
         }else{
             displacement = playerCam.forward * teleportDistance;
         }
-        transform.position += displacement;
+        transform.position += new Vector3(displacement.x, displacement.y*verticalDistanceScale, displacement.z);
         transform.position += hit.normal;
         
 
