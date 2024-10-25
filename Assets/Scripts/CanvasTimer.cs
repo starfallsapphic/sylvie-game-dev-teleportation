@@ -14,7 +14,6 @@ public class CanvasTimer : MonoBehaviour
     void Start()
     {
         _currentTime = 0;
-        StartTimer();
     }
 
     // Update is called once per frame
@@ -25,9 +24,7 @@ public class CanvasTimer : MonoBehaviour
             _currentTime += Time.deltaTime;
         }
 
-        TimeSpan time = TimeSpan.FromSeconds(_currentTime);
-
-        _text.text = time.Minutes.ToString() + ":" + time.Seconds.ToString("D2") + ":" + time.Milliseconds.ToString();
+        _text.text = GetTime();
     }
 
     public void StartTimer()
@@ -38,5 +35,11 @@ public class CanvasTimer : MonoBehaviour
     public void StopTimer()
     {
         _timerActive = false;
+    }
+
+    public string GetTime()
+    {
+        TimeSpan time = TimeSpan.FromSeconds(_currentTime);
+        return time.Minutes.ToString() + ":" + time.Seconds.ToString("D2") + ":" + time.Milliseconds.ToString();
     }
 }

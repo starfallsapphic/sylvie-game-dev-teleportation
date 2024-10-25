@@ -23,7 +23,7 @@ public class PickupScript : MonoBehaviour
     {
         if(other.gameObject.tag == "Player"){
             var playerMovement = other.gameObject.GetComponentInParent<PlayerMovement>();
-            playerMovement.increaseMaxTeleports(teleportsToAdd); 
+            playerMovement.IncreaseMaxTeleports(teleportsToAdd); 
             Destroy(gameObject);
         }
     }

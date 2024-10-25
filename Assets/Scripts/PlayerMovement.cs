@@ -2,8 +2,10 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UI;
+using static EventHandler;
 
 public class PlayerMovement : MonoBehaviour
 {
@@ -44,6 +46,8 @@ public class PlayerMovement : MonoBehaviour
     public Transform orientation;
     public Transform playerCam;
     public TMP_Text speedometer;
+    public ParticleSystem pickupParticles;
+    public EventHandler eventHandler;
 
     float horizontalInput;
     float verticalInput;
@@ -51,6 +55,7 @@ public class PlayerMovement : MonoBehaviour
     Vector3 moveDirection;
 
     Rigidbody rb;
+    TeleportSound soundSystem;
 
     private bool teleportStorage = false;
 
@@ -59,6 +64,7 @@ public class PlayerMovement : MonoBehaviour
     void Start()
     {
         rb = GetComponent<Rigidbody>();
+        soundSystem = GetComponent<TeleportSound>();
         rb.freezeRotation = true;
         teleportsLeft = maxAirTeleports;
     }
@@ -87,7 +93,7 @@ public class PlayerMovement : MonoBehaviour
     {
         grounded = Physics.Raycast(transform.position, Vector3.down, playerHeight * 0.5f + 0.2f, whatIsGround);
 
-        updateSpeedometer();
+        UpdateSpeedometer();
         
 
         if(grounded){
@@ -194,8 +200,7 @@ public class PlayerMovement : MonoBehaviour
     }
 
     private void Teleport(){
-        // Vector3 displacement = playerCam.forward * teleportDistance;
-        // transform.position = transform.position + displacement;
+        soundSystem.PlayRoundRobin();
 
         RaycastHit hit;
         Vector3 displacement;
@@ -216,13 +221,25 @@ public class PlayerMovement : MonoBehaviour
         teleportsLeft--;
     }
 
-    private void updateSpeedometer()
+    private void UpdateSpeedometer()
     {
         speedometer.text = string.Format("Speed: {0}", Math.Round(rb.velocity.magnitude, 1));
     }
 
-    public void increaseMaxTeleports(int num)
+    public void IncreaseMaxTeleports(int num)
     {
         maxAirTeleports += num;
+        pickupParticles.Play();
+        if(maxAirTeleports == 6){
+            eventHandler.changeSkyBox();
+        }
+    }
+
+    public bool IsOutOfBounds()
+    {
+        if(transform.position.y < -25){
+            return true;
+        }
+        return false;
     }
 }
